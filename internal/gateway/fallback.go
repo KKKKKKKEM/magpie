@@ -350,6 +350,7 @@ func (s *Server) plan(p provider.Provider, model string, from provider.Protocol)
 			w := weighed(c, q, weighing{}, fallback, from)
 			w.Unlisted = true
 			pl.left = append(pl.left, w)
+			pl.unlisted = append(pl.unlisted, c)
 		}
 		return cs
 	}
@@ -430,6 +431,7 @@ func planLevel(g provider.Group, ms []provider.Member, depth int, from provider.
 			w := weighed(c, m.Provider, weighing{}, false, from)
 			w.Unlisted, w.Via = true, m.Groups()
 			pl.left = append(pl.left, w)
+			pl.unlisted = append(pl.unlisted, c)
 		}
 		return cs
 	}

@@ -359,6 +359,10 @@ type planned struct {
 	// cap set on them, for a conversation that stays strictly on one to
 	// go on there (provider.AffinityStrict, #1797)
 	capped []candidate
+	// unlisted: the accounts left out (in left) as their own list lacks
+	// the model while another account's has it, for a key held to accounts
+	// none of which lists it to be tried on them (allowedCandidates)
+	unlisted []candidate
 }
 
 func weighed(c candidate, p provider.Provider, wg weighing, fallback bool, from provider.Protocol) Weighed {

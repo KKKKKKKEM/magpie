@@ -723,6 +723,15 @@ func rememberLogins(force bool) {
 			}
 			l.Held = true
 		}
+		if agent == "codex" {
+			// signed in anew at another plan: the models its old plan
+			// listed are no longer its own
+			for _, o := range ls {
+				if sameLogin(o, l) && o.Plan != "" && o.Plan != l.Plan {
+					forgetAccountModels(agent, o.User)
+				}
+			}
+		}
 		ls = upsertLogin(ls, l)
 		changed = true
 	}
@@ -1312,6 +1321,9 @@ func forgetLogin(agent, user string) (signedOut bool, err error) {
 	}
 	if agent == "claude" {
 		forgetClaudeDir(user)
+	}
+	if agent == "codex" {
+		forgetAccountModels(agent, user)
 	}
 	return signedOut, writeLogins(out)
 }

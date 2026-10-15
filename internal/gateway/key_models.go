@@ -214,9 +214,12 @@ func keyAllowed(r *http.Request, es []provider.Entry) []provider.Entry {
 // and keys it may not either, through a named group too: naming a group
 // is not naming its accounts. The plan's order keeps step with what is
 // left, and an account the key may not use is said on the plan's left,
-// held. members are the group's the key may go to through it
-// (groupKeeps), nil for a model. held says every candidate was an
-// account or key the key may not use.
+// held. With none of the accounts the key may use listing the model, the
+// ones it may use whose own list lacks it are tried, as they are with no
+// other account to list it: the key's accounts decide who "none" is, not
+// the accounts it may not use. members are the group's the key may go to
+// through it (groupKeeps), nil for a model. held says every candidate was
+// an account or key the key may not use.
 func allowedCandidates(who access.Identity, cs []candidate, pl planned, members map[string]bool) ([]candidate, planned, bool) {
 	out := cs[:0:0]
 	order := pl.order[:0:0]
@@ -237,6 +240,23 @@ func allowedCandidates(who access.Identity, cs []candidate, pl planned, members 
 		out = append(out, c)
 		if i < len(pl.order) {
 			order = append(order, pl.order[i])
+		}
+	}
+	if len(out) == 0 {
+		for _, c := range pl.unlisted {
+			if !members[c.p.ID+"/"+c.model] && !modelAllowed(who, c.p, c.model) || !accountAllowed(who, c) {
+				continue
+			}
+			i := slices.IndexFunc(pl.left, func(w Weighed) bool {
+				return w.Unlisted && w.ID == c.rest && w.Model == c.model && w.Fixed == c.effort
+			})
+			if i < 0 {
+				continue
+			}
+			w := pl.left[i]
+			w.Unlisted = false
+			pl.left = slices.Delete(slices.Clone(pl.left), i, i+1)
+			out, order = append(out, c), append(order, w)
 		}
 	}
 	pl.order = order

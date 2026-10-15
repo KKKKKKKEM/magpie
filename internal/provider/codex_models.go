@@ -233,6 +233,14 @@ func accountModels(agent, user string) string {
 	return agent + "@" + keyID(strings.ToLower(user))
 }
 
+// forgetAccountModels drops one account's own model list, so it is taken to
+// have every model until its next fetch lists the plan it has now: the
+// list kept from before a sign-in anew at another plan (a Free account
+// upgraded to Plus) would send it nothing but the old plan's models.
+func forgetAccountModels(agent, user string) {
+	catalog.SaveLive(accountModels(agent, user), "", nil)
+}
+
 // Lists reports whether the account's plan has the model, as far as magpie
 // knows: one whose list was never fetched is taken to have them all.
 func (a *Account) Lists(model string) bool {
